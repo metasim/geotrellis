@@ -95,7 +95,6 @@ lazy val root = Project("geotrellis", file(".")).
     `spark-testkit`,
     util,
     vector,
-    `vector-test`,
     `vector-testkit`,
     vectortile
   ).
@@ -112,6 +111,10 @@ lazy val root = Project("geotrellis", file(".")).
   ).
   settings(unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject -- inProjects(geowave))
 
+// This takes care of a pseudo-cyclic dependency between a module, it's tests, and associated testkit.
+def withTestkit(name: String) =
+  unmanagedClasspath in Test ++= (fullClasspath in (LocalProject(s"$name-testkit"), Compile)).value
+
 lazy val macros = project
   .settings(commonSettings)
 
@@ -122,10 +125,7 @@ lazy val vectortile = project
 lazy val vector = project
   .dependsOn(proj4, util)
   .settings(commonSettings)
-
-lazy val `vector-test` = project
-  .dependsOn(vector, `vector-testkit`)
-  .settings(commonSettings)
+  .settings(withTestkit("vector"))
 
 lazy val `vector-testkit` = project
   .dependsOn(raster, vector)
@@ -154,12 +154,7 @@ lazy val slick = project
 lazy val spark = project
   .dependsOn(util, vectortile, raster, `raster-testkit` % "test")
   .settings(commonSettings)
-  .settings(
-    // This takes care of a pseudo-cyclic dependency between the `spark` test scope, `spark-testkit`,
-    // and `spark` main (compile) scope. sbt is happy with this. IntelliJ requires that `spark-testkit`
-    // be added to the `spark` module dependencies manually (via "Open Module Settings" context menu for "spark" module).
-    unmanagedClasspath in Test ++= (fullClasspath in (LocalProject("spark-testkit"), Compile)).value
-  )
+  .settings(withTestkit("spark"))
 
 lazy val `spark-testkit` = project
   .dependsOn(`raster-testkit`, spark)
@@ -201,7 +196,9 @@ lazy val hbase = project
     `spark-testkit` % "test"
   )
   .settings(commonSettings) // HBase depends on its own protobuf version
-  .settings(projectDependencies := { Seq((projectID in spark).value.exclude("com.google.protobuf", "protobuf-java")) })
+  .settings(
+    projectDependencies := { Seq((projectID in spark).value.exclude("com.google.protobuf", "protobuf-java")) }
+  )
 
 lazy val `spark-etl` = Project(id = "spark-etl", base = file("spark-etl")).
   dependsOn(spark, s3, accumulo, cassandra, hbase).

@@ -93,7 +93,7 @@ class DissolveMethodsSpec extends FunSpec
     }
 
     it("should not throw exceptions when dissolving a multiline that throws a topology exception in JTS for .union call") {
-      val testCaseLines = readFile("vector-test/data/topologyException.json")
+      val testCaseLines = readFile("vector/data/topologyException.json")
       val testCaseMultiLine = MultiLine(testCaseLines)
       an[com.vividsolutions.jts.geom.TopologyException] should be thrownBy { testCaseMultiLine.union }
       testCaseMultiLine.dissolve
@@ -135,7 +135,7 @@ class DissolveMethodsSpec extends FunSpec
 
     // (Taken out because the `union` call takes too long).
     ignore("should read seattle lines [long run time]") {
-      val seattleLines = readFile("vector-test/data/seattle.json")
+      val seattleLines = readFile("vector/data/seattle.json")
 
       Timer.timedTask("seattle.json MultiLine.union") {
         MultiLine(seattleLines).union
@@ -147,7 +147,7 @@ class DissolveMethodsSpec extends FunSpec
     }
 
     it("should read septa rail lines") {
-      val septaRailLines = MultiLine(readFile("vector-test/data/septaRail.geojson"))
+      val septaRailLines = MultiLine(readFile("vector/data/septaRail.geojson"))
 
       Timer.timedTask("septaRail.geojson MultiLine.union") {
         septaRailLines.union
