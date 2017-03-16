@@ -83,7 +83,6 @@ lazy val root = Project("geotrellis", file(".")).
     macros,
     proj4,
     raster,
-    `raster-test`,
     `raster-testkit`,
     s3,
     `s3-test`,
@@ -112,8 +111,8 @@ lazy val root = Project("geotrellis", file(".")).
   settings(unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject -- inProjects(geowave))
 
 // This takes care of a pseudo-cyclic dependency between a module, it's tests, and associated testkit.
-def withTestkit(name: String) =
-  unmanagedClasspath in Test ++= (fullClasspath in (LocalProject(s"$name-testkit"), Compile)).value
+def withCircularDependency(project: String, config: Configuration = Test) =
+  unmanagedClasspath in config ++= (fullClasspath in (LocalProject(s"$project"), Compile)).value
 
 lazy val macros = project
   .settings(commonSettings)
@@ -123,25 +122,26 @@ lazy val vectortile = project
   .settings(commonSettings)
 
 lazy val vector = project
-  .dependsOn(proj4, util)
+  .dependsOn(proj4, util, raster % "test")
   .settings(commonSettings)
-  .settings(withTestkit("vector"))
+  .settings(withCircularDependency("vector-testkit"))
 
 lazy val `vector-testkit` = project
-  .dependsOn(raster, vector)
+  .dependsOn(vector)
   .settings(commonSettings)
 
 lazy val proj4 = project
   .settings(commonSettings)
-  .settings(javacOptions ++= Seq("-encoding", "UTF-8"))
+  .settings(javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked"))
 
 lazy val raster = project
-  .dependsOn(util, macros, vector)
+  .dependsOn(util, macros)
   .settings(commonSettings)
-
-lazy val `raster-test` = project
-  .dependsOn(raster, `raster-testkit`, `vector-testkit`)
-  .settings(commonSettings)
+  .settings(
+    withCircularDependency("raster-testkit"),
+    withCircularDependency("vector", Compile),
+    withCircularDependency("vector-testkit")
+  )
 
 lazy val `raster-testkit` = project
   .dependsOn(raster, vector)
@@ -154,7 +154,7 @@ lazy val slick = project
 lazy val spark = project
   .dependsOn(util, vectortile, raster, `raster-testkit` % "test")
   .settings(commonSettings)
-  .settings(withTestkit("spark"))
+  .settings(withCircularDependency("spark-testkit"))
 
 lazy val `spark-testkit` = project
   .dependsOn(`raster-testkit`, spark)
@@ -196,9 +196,7 @@ lazy val hbase = project
     `spark-testkit` % "test"
   )
   .settings(commonSettings) // HBase depends on its own protobuf version
-  .settings(
-    projectDependencies := { Seq((projectID in spark).value.exclude("com.google.protobuf", "protobuf-java")) }
-  )
+  .settings(projectDependencies := Seq((projectID in spark).value.exclude("com.google.protobuf", "protobuf-java")))
 
 lazy val `spark-etl` = Project(id = "spark-etl", base = file("spark-etl")).
   dependsOn(spark, s3, accumulo, cassandra, hbase).
@@ -206,7 +204,7 @@ lazy val `spark-etl` = Project(id = "spark-etl", base = file("spark-etl")).
 
 lazy val geotools = project
   .dependsOn(raster, vector, proj4, `vector-testkit` % "test", `raster-testkit` % "test",
-    `raster-test` % "test->test" // <-- to get rid  of this, move `GeoTiffTestUtils` to the testkit.
+    `raster` % "test->test" // <-- to get rid  of this, move `GeoTiffTestUtils` to the testkit.
   )
   .settings(commonSettings)
 
@@ -222,7 +220,7 @@ lazy val geowave = project
   .settings(commonSettings)
 
 lazy val shapefile = project
-  .dependsOn(raster, `raster-testkit` % "test")
+  .dependsOn(raster, `vector`, `raster-testkit` % "test")
   .settings(commonSettings)
 
 lazy val util = project
