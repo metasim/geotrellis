@@ -68,7 +68,8 @@ lazy val commonSettings = Seq(
   headers := Map(
     "scala" -> Apache2_0("2016", "Azavea"),
     "conf" -> Apache2_0("2016", "Azavea", "#")
-  )
+  ),
+  wartremoverWarnings += Wart.OptionPartial
 )
 
 lazy val root = Project("geotrellis", file(".")).
