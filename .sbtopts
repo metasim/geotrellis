@@ -1,3 +1,4 @@
 -J-Xmx2g
 -Djava.awt.headless=true
 -Dsun.io.serialization.extendedDebugInfo=true
+-J-XX:MaxMetaspaceSize=1g
