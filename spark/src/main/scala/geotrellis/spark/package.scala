@@ -105,7 +105,7 @@ package object spark
   type TemporalComponent[K] = Component[K, TemporalKey]
 
   type TileComponent[K] = Component[K, Tile]
-  implicit val tileFeatureHasTileComponent: TileComponent[TileFeature[Tile, _]] = Component[TileFeature[Tile, _], Tile](
+  implicit def tileFeatureHasTileComponent[D]: TileComponent[TileFeature[Tile, D]] = Component[TileFeature[Tile, D], Tile](
     { tf ⇒ tf.tile },
     { case (tf, t) ⇒ tf.copy(tile = t) }
   )
