@@ -104,6 +104,12 @@ package object spark
   type SpatialComponent[K] = Component[K, SpatialKey]
   type TemporalComponent[K] = Component[K, TemporalKey]
 
+  type TileComponent[K] = Component[K, Tile]
+  implicit val tileFeatureHasTileComponent: TileComponent[TileFeature[Tile, _]] = Component[TileFeature[Tile, _], Tile](
+    { tf ⇒ tf.tile },
+    { case (tf, t) ⇒ tf.copy(tile = t) }
+  )
+
   /** Auto wrap a partitioner when something is requestion an Option[Partitioner];
     * useful for Options that take an Option[Partitioner]
     */
