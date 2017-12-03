@@ -1,0 +1,328 @@
+[
+    {
+        "jmhVersion" : "1.19",
+        "benchmark" : "geotrellis.raster.merge.MergeBench.merge",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre/bin/java",
+        "jvmArgs" : [
+            "-Xmx8G"
+        ],
+        "jdkVersion" : "1.8.0_121",
+        "vmVersion" : "25.121-b13",
+        "warmupIterations" : 5,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "cellTypeName" : "uint8",
+            "splits" : "8",
+            "tileSize" : "2048"
+        },
+        "primaryMetric" : {
+            "score" : 5.0260042592055125,
+            "scoreError" : 0.7720232682036412,
+            "scoreConfidence" : [
+                4.253980991001871,
+                5.798027527409154
+            ],
+            "scorePercentiles" : {
+                "0.0" : 4.831743346153846,
+                "50.0" : 4.979420846534653,
+                "90.0" : 5.276691560209424,
+                "95.0" : 5.276691560209424,
+                "99.0" : 5.276691560209424,
+                "99.9" : 5.276691560209424,
+                "99.99" : 5.276691560209424,
+                "99.999" : 5.276691560209424,
+                "99.9999" : 5.276691560209424,
+                "100.0" : 5.276691560209424
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    4.831743346153846,
+                    5.276691560209424,
+                    4.850806125603865,
+                    4.979420846534653,
+                    5.191359417525773
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+            "JFR" : {
+                "score" : "NaN",
+                "scoreError" : "NaN",
+                "scoreConfidence" : [
+                    "NaN",
+                    "NaN"
+                ],
+                "scorePercentiles" : {
+                    "0.0" : "NaN",
+                    "50.0" : "NaN",
+                    "90.0" : "NaN",
+                    "95.0" : "NaN",
+                    "99.0" : "NaN",
+                    "99.9" : "NaN",
+                    "99.99" : "NaN",
+                    "99.999" : "NaN",
+                    "99.9999" : "NaN",
+                    "100.0" : "NaN"
+                },
+                "scoreUnit" : "N/A",
+                "rawData" : [
+                    [
+                    ]
+                ]
+            }
+        }
+    },
+    {
+        "jmhVersion" : "1.19",
+        "benchmark" : "geotrellis.raster.merge.MergeBench.merge",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre/bin/java",
+        "jvmArgs" : [
+            "-Xmx8G"
+        ],
+        "jdkVersion" : "1.8.0_121",
+        "vmVersion" : "25.121-b13",
+        "warmupIterations" : 5,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "cellTypeName" : "uint8",
+            "splits" : "16",
+            "tileSize" : "2048"
+        },
+        "primaryMetric" : {
+            "score" : 1.2356116931038597,
+            "scoreError" : 0.19080298543292545,
+            "scoreConfidence" : [
+                1.0448087076709343,
+                1.426414678536785
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.1903104667458433,
+                "50.0" : 1.2268792783882785,
+                "90.0" : 1.3174122874015748,
+                "95.0" : 1.3174122874015748,
+                "99.0" : 1.3174122874015748,
+                "99.9" : 1.3174122874015748,
+                "99.99" : 1.3174122874015748,
+                "99.999" : 1.3174122874015748,
+                "99.9999" : 1.3174122874015748,
+                "100.0" : 1.3174122874015748
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    1.1903104667458433,
+                    1.2041799520958083,
+                    1.2392764808877927,
+                    1.3174122874015748,
+                    1.2268792783882785
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+            "JFR" : {
+                "score" : "NaN",
+                "scoreError" : "NaN",
+                "scoreConfidence" : [
+                    "NaN",
+                    "NaN"
+                ],
+                "scorePercentiles" : {
+                    "0.0" : "NaN",
+                    "50.0" : "NaN",
+                    "90.0" : "NaN",
+                    "95.0" : "NaN",
+                    "99.0" : "NaN",
+                    "99.9" : "NaN",
+                    "99.99" : "NaN",
+                    "99.999" : "NaN",
+                    "99.9999" : "NaN",
+                    "100.0" : "NaN"
+                },
+                "scoreUnit" : "N/A",
+                "rawData" : [
+                    [
+                    ]
+                ]
+            }
+        }
+    },
+    {
+        "jmhVersion" : "1.19",
+        "benchmark" : "geotrellis.raster.merge.MergeBench.merge",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre/bin/java",
+        "jvmArgs" : [
+            "-Xmx8G"
+        ],
+        "jdkVersion" : "1.8.0_121",
+        "vmVersion" : "25.121-b13",
+        "warmupIterations" : 5,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "cellTypeName" : "float64",
+            "splits" : "8",
+            "tileSize" : "2048"
+        },
+        "primaryMetric" : {
+            "score" : 4.672779212895631,
+            "scoreError" : 1.3311099976642415,
+            "scoreConfidence" : [
+                3.3416692152313896,
+                6.003889210559873
+            ],
+            "scorePercentiles" : {
+                "0.0" : 4.351878285714286,
+                "50.0" : 4.5214015515695065,
+                "90.0" : 5.219460207253886,
+                "95.0" : 5.219460207253886,
+                "99.0" : 5.219460207253886,
+                "99.9" : 5.219460207253886,
+                "99.99" : 5.219460207253886,
+                "99.999" : 5.219460207253886,
+                "99.9999" : 5.219460207253886,
+                "100.0" : 5.219460207253886
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    5.219460207253886,
+                    4.5214015515695065,
+                    4.351878285714286,
+                    4.794436461904762,
+                    4.476719558035715
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+            "JFR" : {
+                "score" : "NaN",
+                "scoreError" : "NaN",
+                "scoreConfidence" : [
+                    "NaN",
+                    "NaN"
+                ],
+                "scorePercentiles" : {
+                    "0.0" : "NaN",
+                    "50.0" : "NaN",
+                    "90.0" : "NaN",
+                    "95.0" : "NaN",
+                    "99.0" : "NaN",
+                    "99.9" : "NaN",
+                    "99.99" : "NaN",
+                    "99.999" : "NaN",
+                    "99.9999" : "NaN",
+                    "100.0" : "NaN"
+                },
+                "scoreUnit" : "N/A",
+                "rawData" : [
+                    [
+                    ]
+                ]
+            }
+        }
+    },
+    {
+        "jmhVersion" : "1.19",
+        "benchmark" : "geotrellis.raster.merge.MergeBench.merge",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre/bin/java",
+        "jvmArgs" : [
+            "-Xmx8G"
+        ],
+        "jdkVersion" : "1.8.0_121",
+        "vmVersion" : "25.121-b13",
+        "warmupIterations" : 5,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "cellTypeName" : "float64",
+            "splits" : "16",
+            "tileSize" : "2048"
+        },
+        "primaryMetric" : {
+            "score" : 1.2257787975149017,
+            "scoreError" : 0.1615639780678,
+            "scoreConfidence" : [
+                1.0642148194471017,
+                1.3873427755827017
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.1720279242424243,
+                "50.0" : 1.2364555313653136,
+                "90.0" : 1.2641107664141413,
+                "95.0" : 1.2641107664141413,
+                "99.0" : 1.2641107664141413,
+                "99.9" : 1.2641107664141413,
+                "99.99" : 1.2641107664141413,
+                "99.999" : 1.2641107664141413,
+                "99.9999" : 1.2641107664141413,
+                "100.0" : 1.2641107664141413
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    1.1923864565992865,
+                    1.1720279242424243,
+                    1.2639133089533416,
+                    1.2641107664141413,
+                    1.2364555313653136
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+            "JFR" : {
+                "score" : "NaN",
+                "scoreError" : "NaN",
+                "scoreConfidence" : [
+                    "NaN",
+                    "NaN"
+                ],
+                "scorePercentiles" : {
+                    "0.0" : "NaN",
+                    "50.0" : "NaN",
+                    "90.0" : "NaN",
+                    "95.0" : "NaN",
+                    "99.0" : "NaN",
+                    "99.9" : "NaN",
+                    "99.99" : "NaN",
+                    "99.999" : "NaN",
+                    "99.9999" : "NaN",
+                    "100.0" : "NaN"
+                },
+                "scoreUnit" : "N/A",
+                "rawData" : [
+                    [
+                    ]
+                ]
+            }
+        }
+    }
+]
+
+
