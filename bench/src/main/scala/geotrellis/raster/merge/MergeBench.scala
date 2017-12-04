@@ -19,6 +19,7 @@ package geotrellis.raster.merge
 
 import geotrellis.bench._
 import geotrellis.raster._
+import geotrellis.raster.resample.NearestNeighbor
 import geotrellis.vector.Extent
 import org.openjdk.jmh.annotations.{Mode ⇒ JMHMode, _}
 import spire.syntax.cfor.cfor
@@ -30,26 +31,41 @@ class MergeBench {
   @Param(Array("uint8", "float64"))
   var cellTypeName: String = _
 
-  @Param(Array("2048"))
+  @Param(Array("512"))
   var tileSize: Int = _
 
   @Param(Array("8"))
   var splits: Int = _
 
+  val extent = Extent(-180, -90, 180, 90)
+
+  var source: Raster[Tile] = _
+
   var rasters: Array[Raster[Tile]] = _
+
+  var resultTile: Tile = _
 
   @Setup(Level.Trial)
   def setup(): Unit = {
-    val raster = Raster(randomTile(tileSize, tileSize, cellTypeName), Extent(-180, -90, 180, 90))
-    val shuffled = rnd.shuffle(raster.split(splits, splits).toSeq)
+    source = Raster(randomTile(tileSize, tileSize, cellTypeName), extent)
+    val shuffled = rnd.shuffle(source.split(splits, splits).toSeq)
     rasters = shuffled.toArray
   }
 
+  @Setup(Level.Iteration)
+  def clearResult(): Unit = {
+    resultTile = source.tile.prototype(tileSize, tileSize)
+  }
+
   @Benchmark
-  def merge: Raster[Tile] = {
-    var result: Raster[Tile] = rasters.head
-    cfor(1)(_ < rasters.length, _ + 1) { i ⇒
-      result = result.merge(rasters(i))
+  def merge: Tile = {
+    var result: Tile = resultTile
+    cfor(0)(_ < rasters.length, _ + 1) { i ⇒
+      val nextRaster = rasters(i)
+      val nextTile = result.merge(
+        extent, nextRaster.extent, nextRaster.tile, NearestNeighbor
+      )
+      result = nextTile
     }
     result
   }

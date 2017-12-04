@@ -22,6 +22,8 @@ import org.openjdk.jmh.infra.BenchmarkParams
 import pl.project13.scala.jmh.extras.profiler.FlightRecordingProfiler
 
 /**
+ * A derived JMH plugin for enabling the Oracle Flight Recorder during runs with some settings customized from the
+ * default (hard-coded) ones.
  *
  * @author sfitch 
  * @since 12/3/17
@@ -40,7 +42,7 @@ class GeotrellisFlightRecordingProfiler(initLine: String) extends FlightRecordin
 
   val startOptions = Map(
     "name" -> getClass.getSimpleName,
-    "delay" -> "3s",
+    "delay" -> "1s",
     "duration" -> "120s",
     "filename" -> outFile
   )
