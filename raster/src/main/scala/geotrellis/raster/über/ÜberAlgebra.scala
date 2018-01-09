@@ -17,6 +17,7 @@
 
 package geotrellis.raster.über
 
+import spire.NoImplicit
 import spire.algebra._
 
 import scala.reflect.ClassTag
@@ -28,7 +29,7 @@ import scala.reflect.ClassTag
  */
 object ÜberAlgebra {
 
-  trait LinearlyAddressedTileHasOrder[C, T <: LinearlyAddressedTile[C]] extends Order[T] with Serializable {
+  trait LinearlyAddressedTileHasOrder[C, T <: LinearlyAddressedTile[C]] extends Order[T] {
     def scalar: Order[C]
     override def eqv(x: T, y: T): Boolean = x.cols == y.cols && x.rows == y.cols && compare(x, y) == 0
     def compare(x: T, y: T): Int = {
@@ -48,13 +49,26 @@ object ÜberAlgebra {
     def scalar = Order[C]
   }
 
-  trait MappableTileIsRng[C, T <: MappableTile[C, T]] extends Rng[T] with Serializable {
+  trait MappableTileIsEq[C, T <: MappableTile[C, T]] extends Eq[T] {
+    def scalar: AdditiveGroup[C]
+    def eqv(x: T, y: T): Boolean = x.cols == y.cols && x.rows == y.rows && cellsEqual(x,y)
+    private def cellsEqual(x: T, y: T): Boolean =
+      x.zip(y)(scalar.minus).reduceOption(scalar.plus).getOrElse(0) == 0
+  }
+
+  trait MapapbleTileIsAdditiveMonoid[C, T <: MappableTile[C, T]] extends AdditiveMonoid[T] with MappableTileIsEq[C, T] { self ⇒
+    def scalar: AdditiveGroup[C]
+    def builder: TileBuilder[T]
+    def zero = builder.empty
+    def plus(x: T, y: T): T = if(isZero(x)(self)) y else if(isZero(y)(self)) x else x.zip(y)(scalar.plus)
+    override def isZero(a: T)(implicit ev: Eq[T]): Boolean = a.size == 0
+  }
+
+  trait MappableTileIsRng[C, T <: MappableTile[C, T]] extends MapapbleTileIsAdditiveMonoid[C, T] with Rng[T] { self ⇒
     def scalar: Rng[C]
     def builder: TileBuilder[T]
-    def zero: T = builder.empty
-    def times(x: T, y: T): T =  x.zip(y)(scalar.times)
+    def times(x: T, y: T): T =  if(isZero(x)(self)) x else if(isZero(y)(self)) y else x.zip(y)(scalar.times)
     def negate(x: T): T = x.map(scalar.negate)
-    def plus(x: T, y: T): T = x.zip(y)(scalar.plus)
     override protected def prodnAboveOne(a: T, n: Int): T = a.map(scalar.pow(_, n))
   }
 
@@ -64,16 +78,17 @@ object ÜberAlgebra {
   }
 
   @SerialVersionUID(0L)
-  class SignedMappableTileAlgebra[C: Rng, T <: MappableTile[C, T]: TileBuilder: ClassTag]
+  class SignedMappableTileAlgebra[C: Rng, T <: MappableTile[C, T]: TileBuilder]
     extends MappableTileIsModule[C, T] {
     def builder = TileBuilder[T]
     def scalar = Rng[C]
   }
 
-  trait Implicits {
-    implicit def mappableTileModule[C: Rng, T <: MappableTile[C, T]: TileBuilder: ClassTag] = new SignedMappableTileAlgebra[C, T]
-    implicit def linearlyAddressedTileOrder[C: Order, T <: LinearlyAddressedTile[C]] = new LinearlyAddressedTileAlgebra[C, T]
-
+  @SerialVersionUID(0L)
+  class UnsignedMappableTileAlgebra[C: Rng, T <: MappableTile[C, T]: TileBuilder]
+    extends MappableTileIsModule[C, T] {
+    def builder = TileBuilder[T]
+    def scalar = Rng[C]
   }
 }
 

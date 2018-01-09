@@ -17,12 +17,7 @@
 
 package geotrellis.raster.über
 
-import java.nio.{Buffer, IntBuffer}
-
-import geotrellis.raster.{CellGrid, CellType, Grid, IntCellType}
-import spire.algebra._
-import spire.math._
-import spire.implicits._
+import geotrellis.raster.Grid
 
 /**
  * @tparam C cell word size, i.e. the primitive type (e.g. Int, Double, Byte, etc.)

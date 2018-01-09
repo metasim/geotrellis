@@ -20,6 +20,7 @@ package geotrellis.raster.über
 import java.util
 
 import geotrellis.raster.Tile
+import geotrellis.raster.über.JVMArrayTile.JVMTileBuilder
 import spire.algebra._
 import spire.implicits._
 import spire.math._
@@ -33,24 +34,30 @@ import scala.reflect.runtime.universe._
  * @author sfitch 
  * @since 1/6/18
  */
-abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] extends MappableTile[C, T] with ColumnMajorTile[C] { self: Product ⇒
+abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] extends MappableTile[C, T] with ColumnMajorTile[C] with Product {
 
   type StorageType = Array[C]
+
+  lazy val builder = new JVMTileBuilder[C, T]
 
   def get(index: Int) = cells(index)
 
   def map(f: C ⇒ C): T = {
-    val buf = self.cells.clone()
+    val buf = cells.clone()
     cfor(0)(_ < buf.length, _ + 1) { i ⇒
       buf(i) = f(buf(i))
     }
-    jvmTileHasBuilder[C, T].construct(cols, rows, buf)
+    builder.construct(cols, rows, buf)
+  }
+
+  def reduceOption[C1 >: C](op: (C1, C1) ⇒ C1): Option[C1] = {
+    if(size == 0) None
+    else cells.reduceOption(op)
   }
 
   def zip(other: ⇒ T)(f: (C, C) ⇒ C): T = {
-    val left = self
+    val left = this
     val right = other
-
     val cols = min(left.cols, right.cols)
     val rows = min(left.rows, right.rows)
     val buf = Array.ofDim[C](cols * rows)
@@ -64,51 +71,53 @@ abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] exte
         buf(i) = f(lcells(i), rcells(i))
       }
     }
-    jvmTileHasBuilder[C, T].construct(cols, rows, buf)
+    builder.construct(cols, rows, buf)
   }
 
-  override def equals(that: scala.Any) = self.canEqual(that) && (that match {
+  override def equals(that: scala.Any) = canEqual(that) && (that match {
     case t: JVMArrayTile[_, _] ⇒
-      self.cols == t.cols && self.rows == t.rows &&
-      self.cells.deep == t.cells.deep
+      cols == t.cols && rows == t.rows &&
+      cells.deep == t.cells.deep
     case _ ⇒ false
   })
 
-  override def toString = if(cells.length > 20)
-    s"$productPrefix($cols, $rows, ${cells.take(20).mkString(", ")}...)"
-  else
-    s"$productPrefix($cols, $rows, ${cells.mkString(", ")})"
+  override def toString =
+    s"$productPrefix($cols, $rows, ${cells.take(20).mkString(", ")}${if(cells.length > 20) "...)" else ")"}"
 }
 
 object JVMArrayTile {
-
-  trait Implicits {
-    class JVMTileBuilder[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] extends TileBuilder[T] {
-      val ctor = classTag[T].runtimeClass.asInstanceOf[Class[T]].getConstructor(
-        Integer.TYPE, Integer.TYPE, classTag[C].wrap.runtimeClass
-      )
-      def empty = ctor.newInstance(Int.box(0), Int.box(0), Array.empty[C])
-      def construct(cols: Int, rows: Int, cells: Array[C]) = ctor.newInstance(Int.box(cols), Int.box(rows), cells)
-    }
-
-    implicit def jvmTileHasBuilder[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag]: TileBuilder[T] = new JVMTileBuilder[C, T]
+  class JVMTileBuilder[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] extends TileBuilder[T] {
+    val ctor = classTag[T].runtimeClass.asInstanceOf[Class[T]].getConstructor(
+      Integer.TYPE, Integer.TYPE, classTag[C].wrap.runtimeClass
+    )
+    def empty = ctor.newInstance(Int.box(0), Int.box(0), Array.empty[C])
+    def construct(cols: Int, rows: Int, cells: Array[C]) = ctor.newInstance(Int.box(cols), Int.box(rows), cells)
   }
 
-  case class IntJVMArrayTile(cols: Int, rows: Int, cells: Array[Int]) extends JVMArrayTile[Int, IntJVMArrayTile]
-  object IntJVMArrayTile {
-    /** Convenience constructor for converting from existing Tile. */
-    def apply(t: Tile) = new IntJVMArrayTile(t.cols, t.rows, t.toArrayTile().toArray)
-    implicit val intTileHasBuilder = jvmTileHasBuilder[Int, IntJVMArrayTile]
+  trait Implicits {
+
+    implicit val intTileHasBuilder = new JVMTileBuilder[Int, IntJVMArrayTile]
     implicit val intTileAlgebra1 = new ÜberAlgebra.SignedMappableTileAlgebra[Int, IntJVMArrayTile]
     implicit val intTileAlgebra2 = new ÜberAlgebra.LinearlyAddressedTileAlgebra[Int, IntJVMArrayTile]
 
+    implicit val ubyteAsAdditiveGroup = new Ring[UByte] {
+      def negate(x: UByte) = -x // <--- not sure what the implications of this are....
+      def zero = UByte.MinValue
+      def one = UByte(1)
+      def plus(x: UByte, y: UByte) = x + y
+      override def minus(x: UByte, y: UByte) = x - y
+      def times(x: UByte, y: UByte) = x * y
+    }
+
+    implicit val ubyteTileHasBuilder = new JVMTileBuilder[UByte, UByteJVMArrayTile]
+    implicit val ubyteTileAlgebra1 = new ÜberAlgebra.UnsignedMappableTileAlgebra[UByte, UByteJVMArrayTile]
+    implicit val ubyteTileAlgebra2 = new ÜberAlgebra.LinearlyAddressedTileAlgebra[UByte, UByteJVMArrayTile]
+
   }
 
+  case class IntJVMArrayTile(cols: Int, rows: Int, cells: Array[Int]) extends JVMArrayTile[Int, IntJVMArrayTile]
+
   case class UByteJVMArrayTile(cols: Int, rows: Int, cells: Array[UByte]) extends JVMArrayTile[UByte, UByteJVMArrayTile]
-  object UByteJVMArrayTile {
-    implicit val ubyteTileHasBuilder = jvmTileHasBuilder[UByte, UByteJVMArrayTile]
-    //implicit val ubyteTileHasModule = jvmTileHasModule[UByte, UByteJVMArrayTile]
-  }
 }
 
 

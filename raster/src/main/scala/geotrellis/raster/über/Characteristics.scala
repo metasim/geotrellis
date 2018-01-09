@@ -21,6 +21,7 @@ import geotrellis.raster.Grid
 
 trait MappableTile[C, T <: MappableTile[C, T]] extends ÜberTile[C, T] {
   def map(f: C ⇒ C): T
+  def reduceOption[C1 >: C](op: (C1, C1) ⇒ C1): Option[C1]
   def zip(other: ⇒ T)(f: (C, C) ⇒ C): T
 }
 
