@@ -92,24 +92,22 @@ object JVMArrayTile {
     }
 
     implicit def jvmTileHasBuilder[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag]: TileBuilder[T] = new JVMTileBuilder[C, T]
-    def jvmTileHasModule[C: Ring: ClassTag, T <: JVMArrayTile[C, T]: TileBuilder: ClassTag: TypeTag]: Module[T, C] =
-      new ÜberAlgebra.MappableTileModule[C, T]
-    implicit def jvmTileHasOrder[C: Order: ClassTag, T <: JVMArrayTile[C, T]]: Order[T] =
-      new ÜberAlgebra.LinearlyAddressedTileOrder[C, T]
-
-
   }
 
-  case class IntJVMArrayTile(cols: Int, rows: Int, cells: Array[Int]) extends JVMArrayTile[Int, IntJVMArrayTile] {
-    def construct(col: Int, row: Int, cells: Array[Int]) = IntJVMArrayTile(col, row, cells)
-  }
-
+  case class IntJVMArrayTile(cols: Int, rows: Int, cells: Array[Int]) extends JVMArrayTile[Int, IntJVMArrayTile]
   object IntJVMArrayTile {
     /** Convenience constructor for converting from existing Tile. */
     def apply(t: Tile) = new IntJVMArrayTile(t.cols, t.rows, t.toArrayTile().toArray)
     implicit val intTileHasBuilder = jvmTileHasBuilder[Int, IntJVMArrayTile]
-    implicit val intTileHasModule = jvmTileHasModule[Int, IntJVMArrayTile]
-    implicit val intTileHasOrder = jvmTileHasOrder[Int, IntJVMArrayTile]
+    implicit val intTileAlgebra1 = new ÜberAlgebra.SignedMappableTileAlgebra[Int, IntJVMArrayTile]
+    implicit val intTileAlgebra2 = new ÜberAlgebra.LinearlyAddressedTileAlgebra[Int, IntJVMArrayTile]
+
+  }
+
+  case class UByteJVMArrayTile(cols: Int, rows: Int, cells: Array[UByte]) extends JVMArrayTile[UByte, UByteJVMArrayTile]
+  object UByteJVMArrayTile {
+    implicit val ubyteTileHasBuilder = jvmTileHasBuilder[UByte, UByteJVMArrayTile]
+    //implicit val ubyteTileHasModule = jvmTileHasModule[UByte, UByteJVMArrayTile]
   }
 }
 
