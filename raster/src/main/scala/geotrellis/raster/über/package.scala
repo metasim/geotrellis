@@ -17,15 +17,12 @@
 
 package geotrellis.raster
 
-import spire.syntax.{EqSyntax, ModuleSyntax, OrderSyntax}
-
 /**
  *
  * @author sfitch 
  * @since 1/7/18
  */
 package object über extends ÜberAlgebra.Implicits
-  with JVMArrayTile.Implicits
-  with ModuleSyntax with EqSyntax with OrderSyntax {
+  with JVMArrayTile.Implicits {
 
 }

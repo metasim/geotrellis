@@ -25,7 +25,10 @@ import spire.std._
 import spire.algebra._
 import spire.math._
 import spire.implicits._
-import spire.sp
+import spire.syntax._
+import spire.syntax.ModuleUnboundOps
+
+
 /**
  *
  * @author sfitch 
@@ -40,32 +43,56 @@ class ÜberTileSpec extends FunSpec
     describe("int tile") {
       val t1 = IntJVMArrayTile(createConsecutiveTile(3))
       val t2 = IntJVMArrayTile(createOnesTile(3))
+
       it("has builder") {
         val builder = TileBuilder[IntJVMArrayTile]
         builder.empty.cells.length should === (0)
 
         val tile = builder.construct(3, 3, createConsecutiveTile(3).toArray())
-        tile.cols should === (3)
-        tile.rows should === (3)
-        tile.cells.length should === (9)
+        assert(tile.cols == 3)
+        assert(tile.rows == 3)
+        assert(tile.cells.length == 9)
       }
 
       it("has equality") {
-        implicit val lo = linearlyAddressedTileOrder[Int, IntJVMArrayTile]
-        val teq = implicitly[Eq[IntJVMArrayTile]]
+        val teq = implicitly[Order[IntJVMArrayTile]]
         assert(teq.eqv(t1, t1))
         assert(teq.eqv(t2, t2))
+        assert(t1 == t1)
+        assert(t2 == t2)
       }
 
-      it("supports additive group ops") {
+      it("has order") {
+        assert(t1 > t2)
+        assert(t1 >= t2)
+        assert(t2 < t1)
+        assert(t2 <= t1)
+        assert(t1 != t2)
+        assert(t2 != t1)
+      }
+
+      it("supports addition, subtraction, negation") {
         val r0 = -t1
         val r1 = t1 + t2
         val r2 = t1 - t2
 
-        println(r0)
-        println(r1)
-        println(r2)
+        assert(r0 == -t1)
+        assert(r1 == t1 + t2)
+        assert(r2 == t1 - t2)
+        assert(r0 + r1 + r2 == t1)
+      }
 
+      it("supports scalar multiplication") {
+        assert(t1 :* 1 == t1)
+        assert(2 *: t1 == t1 + t1)
+      }
+
+      it("support tile multiplication") {
+        assert(t2 * t2 == t2)
+        assert(t1 * t2 == t1)
+        val two = t2 + t2
+        assert(t1 * two == t1 + t1)
+        assert(t2 ** 4 == t2)
       }
     }
   }

@@ -17,30 +17,34 @@
 
 package geotrellis.raster.über
 
+import java.util
+
 import geotrellis.raster.Tile
 import spire.algebra._
 import spire.implicits._
 import spire.math._
+import spire.std._
 
 import scala.reflect._
+import scala.reflect.runtime.universe._
 
 /**
  *
  * @author sfitch 
  * @since 1/6/18
  */
-abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] extends MappableTile[C, T] with ColumnMajorTile[C] { self ⇒
+abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] extends MappableTile[C, T] with ColumnMajorTile[C] { self: Product ⇒
 
   type StorageType = Array[C]
 
   def get(index: Int) = cells(index)
 
   def map(f: C ⇒ C): T = {
-    val cells = self.cells.clone()
-    cfor(0)(_ < cells.length, _ + 1) { i ⇒
-      cells(i) = f(cells(i))
+    val buf = self.cells.clone()
+    cfor(0)(_ < buf.length, _ + 1) { i ⇒
+      buf(i) = f(buf(i))
     }
-    builder[C, T].construct(cols, rows, cells)
+    jvmTileHasBuilder[C, T].construct(cols, rows, buf)
   }
 
   def zip(other: ⇒ T)(f: (C, C) ⇒ C): T = {
@@ -60,13 +64,26 @@ abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] exte
         buf(i) = f(lcells(i), rcells(i))
       }
     }
-    builder[C, T].construct(cols, rows, cells)
+    jvmTileHasBuilder[C, T].construct(cols, rows, buf)
   }
+
+  override def equals(that: scala.Any) = self.canEqual(that) && (that match {
+    case t: JVMArrayTile[_, _] ⇒
+      self.cols == t.cols && self.rows == t.rows &&
+      self.cells.deep == t.cells.deep
+    case _ ⇒ false
+  })
+
+  override def toString = if(cells.length > 20)
+    s"$productPrefix($cols, $rows, ${cells.take(20).mkString(", ")}...)"
+  else
+    s"$productPrefix($cols, $rows, ${cells.mkString(", ")})"
 }
 
 object JVMArrayTile {
+
   trait Implicits {
-    implicit def builder[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag]: TileBuilder[T] = new TileBuilder[T] {
+    class JVMTileBuilder[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] extends TileBuilder[T] {
       val ctor = classTag[T].runtimeClass.asInstanceOf[Class[T]].getConstructor(
         Integer.TYPE, Integer.TYPE, classTag[C].wrap.runtimeClass
       )
@@ -74,11 +91,15 @@ object JVMArrayTile {
       def construct(cols: Int, rows: Int, cells: Array[C]) = ctor.newInstance(Int.box(cols), Int.box(rows), cells)
     }
 
-    implicit def jvmTileHasModule[C: Ring: ClassTag, T <: JVMArrayTile[C, T]: TileBuilder: ClassTag] =
+    implicit def jvmTileHasBuilder[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag]: TileBuilder[T] = new JVMTileBuilder[C, T]
+    def jvmTileHasModule[C: Ring: ClassTag, T <: JVMArrayTile[C, T]: TileBuilder: ClassTag: TypeTag]: Module[T, C] =
       new ÜberAlgebra.MappableTileModule[C, T]
-    implicit def jvmTileHasOrder[C: Order: ClassTag, T <: JVMArrayTile[C, T]] =
+    implicit def jvmTileHasOrder[C: Order: ClassTag, T <: JVMArrayTile[C, T]]: Order[T] =
       new ÜberAlgebra.LinearlyAddressedTileOrder[C, T]
+
+
   }
+
   case class IntJVMArrayTile(cols: Int, rows: Int, cells: Array[Int]) extends JVMArrayTile[Int, IntJVMArrayTile] {
     def construct(col: Int, row: Int, cells: Array[Int]) = IntJVMArrayTile(col, row, cells)
   }
@@ -86,8 +107,7 @@ object JVMArrayTile {
   object IntJVMArrayTile {
     /** Convenience constructor for converting from existing Tile. */
     def apply(t: Tile) = new IntJVMArrayTile(t.cols, t.rows, t.toArrayTile().toArray)
-
-    implicit val intTileHasBuilder = builder[Int, IntJVMArrayTile]
+    implicit val intTileHasBuilder = jvmTileHasBuilder[Int, IntJVMArrayTile]
     implicit val intTileHasModule = jvmTileHasModule[Int, IntJVMArrayTile]
     implicit val intTileHasOrder = jvmTileHasOrder[Int, IntJVMArrayTile]
   }

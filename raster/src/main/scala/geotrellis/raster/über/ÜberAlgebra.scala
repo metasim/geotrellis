@@ -33,29 +33,36 @@ object ÜberAlgebra {
     def compare(x: T, y: T): Int = {
       var i = 0
       while (i < x.size && i < y.size) {
-        val cmp = x.get(i) compare y.get(i)
+        val cmp = ord.compare(x.get(i), y.get(i))
         if (cmp != 0) return cmp
         i += 1
       }
+      // fallout test
       x.size - y.size
     }
   }
 
   @SerialVersionUID(0L)
-  class MappableTileModule[C: ClassTag, T <: MappableTile[C, T]: TileBuilder: ClassTag](
-    implicit override val scalar: Ring[C]) extends Module[T, C] with Serializable {
+  class MappableTileRng[C, T <: MappableTile[C, T]: TileBuilder](implicit scalar: Rng[C]) extends Rng[T] with Serializable {
     def zero: T = TileBuilder[T].empty
-    override def isZero(a: T)(implicit ev: Eq[T]): Boolean = a == zero
-    def negate(x: T): T = x.map(scalar.negate)
     def plus(x: T, y: T): T = x.zip(y)(scalar.plus)
+    def times(x: T, y: T): T = x.zip(y)(scalar.times)
+    def negate(x: T): T = x.map(scalar.negate)
+    override protected def prodnAboveOne(a: T, n: Int): T = a.map(scalar.pow(_, n))
+  }
+
+  @SerialVersionUID(0L)
+  class MappableTileModule[C: ClassTag, T <: MappableTile[C, T]: TileBuilder: ClassTag](
+    implicit override val scalar: Rng[C]) extends MappableTileRng[C, T] with Module[T, C] {
     override def minus(x: T, y: T): T = x.zip(y)(scalar.minus)
     def timesl(r: C, v: T): T = v.map(scalar.times(r, _))
-    override def timesr(v: T, r: C): T = v.map(scalar.times(_, r))
   }
 
   trait Implicits {
-    implicit def linearlyAddressedTileOrder[C, T <: LinearlyAddressedTile[C]](implicit ord: Order[C]) = new LinearlyAddressedTileOrder[C, T]
-    implicit def mappableTileModule[C: ClassTag, T <: MappableTile[C, T]: TileBuilder: ClassTag](implicit scalar: Ring[C]) = new MappableTileModule[C, T]
+    implicit def linearlyAddressedTileOrder[C, T <: LinearlyAddressedTile[C]]
+    (implicit ord: Order[C]) = new LinearlyAddressedTileOrder[C, T]
+    implicit def mappableTileModule[C: ClassTag, T <: MappableTile[C, T]: TileBuilder: ClassTag]
+    (implicit scalar: Ring[C]) = new MappableTileModule[C, T]
   }
 }
 
