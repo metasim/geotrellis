@@ -17,10 +17,7 @@
 
 package geotrellis.raster.über
 
-import spire.NoImplicit
 import spire.algebra._
-
-import scala.reflect.ClassTag
 
 /**
  *
@@ -29,7 +26,7 @@ import scala.reflect.ClassTag
  */
 object ÜberAlgebra {
 
-  trait LinearlyAddressedTileHasOrder[C, T <: LinearlyAddressedTile[C]] extends Order[T] {
+  trait LinearlyAddressedTileHasOrder[C, T <: LinearlyAddressedTile[C, T]] extends Order[T] {
     def scalar: Order[C]
     override def eqv(x: T, y: T): Boolean = x.cols == y.cols && x.rows == y.cols && compare(x, y) == 0
     def compare(x: T, y: T): Int = {
@@ -45,7 +42,7 @@ object ÜberAlgebra {
   }
 
   @SerialVersionUID(0L)
-  class LinearlyAddressedTileAlgebra[C: Order, T <: LinearlyAddressedTile[C]] extends LinearlyAddressedTileHasOrder[C, T] {
+  class LinearlyAddressedTileAlgebra[C: Order, T <: LinearlyAddressedTile[C, T]] extends LinearlyAddressedTileHasOrder[C, T] {
     def scalar = Order[C]
   }
 

@@ -28,7 +28,7 @@ import geotrellis.raster.Grid
 trait ÜberTile[C, T <: ÜberTile[C, T]] extends Grid {
   type StorageType
   type CellType = C
-  def cells: StorageType
+  def cells: T#StorageType
 }
 
 object ÜberTile {

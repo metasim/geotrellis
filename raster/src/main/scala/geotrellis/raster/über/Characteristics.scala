@@ -17,26 +17,25 @@
 
 package geotrellis.raster.über
 
-import geotrellis.raster.Grid
 
 trait MappableTile[C, T <: MappableTile[C, T]] extends ÜberTile[C, T] {
   def map(f: C ⇒ C): T
-  def reduceOption[C1 >: C](op: (C1, C1) ⇒ C1): Option[C1]
+  def reduceOption(op: (C, C) ⇒ C): Option[C]
   def zip(other: ⇒ T)(f: (C, C) ⇒ C): T
 }
 
-trait AddressableCellTile[C] extends Grid { self: ÜberTile[_, _] ⇒
+trait AddressableCellTile[C] { self: ÜberTile[_, _] ⇒
   def get(col: Int, row: Int): C
 }
 
-trait LinearlyAddressedTile[C] extends AddressableCellTile[C] { self: ÜberTile[_, _] ⇒
+trait LinearlyAddressedTile[C, T <: ÜberTile[C, T]] extends  ÜberTile[C, T] with AddressableCellTile[C] {
   def cellIndex(col: Int, row: Int): Int
   def indexCell(index: Int): (Int, Int)
   def get(index: Int): C
   def get(col: Int, row: Int): C = get(cellIndex(col, row))
 }
 
-trait ColumnMajorTile[C] extends LinearlyAddressedTile[C] { self: ÜberTile[_, _] ⇒
+trait ColumnMajorTile { self: ÜberTile[_, _] ⇒
   def cellIndex(col: Int, row: Int): Int = row * cols + col
   def indexCell(index: Int) = (index % cols, index / cols)
 }

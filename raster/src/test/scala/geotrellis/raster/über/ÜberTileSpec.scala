@@ -17,8 +17,11 @@
 
 package geotrellis.raster.über
 
+import java.nio.IntBuffer
+
 import geotrellis.raster.testkit.{RasterMatchers, TileBuilders}
 import geotrellis.raster.über.JVMArrayTile._
+import geotrellis.raster.über.NIOBufferTile.IntBufferTile
 import org.scalatest.{FunSpec, Matchers}
 import spire.algebra._
 import spire.math._
@@ -146,6 +149,72 @@ class ÜberTileSpec extends FunSpec
         assert(r1 == t1 + t2)
         assert(r2 == t1 - t2)
         assert(r1 - r2 == t2 + t2)
+      }
+
+      it("supports scalar multiplication") {
+        assert(t1 :* 1 == t1)
+        assert(2 *: t1 == t1 + t1)
+      }
+
+      it("support tile multiplication") {
+        assert(t2 * t2 == t2)
+        assert(t1 * t2 == t1)
+        val two = t2 + t2
+        assert(t1 * two == t1 + t1)
+        assert(t2 ** 4 == t2)
+      }
+    }
+  }
+
+  describe("NIO buffer tile semantics") {
+    describe("int tile") {
+      val builder = TileBuilder[IntBufferTile]
+      val zero = implicitly[AdditiveMonoid[IntBufferTile]].zero
+      val t1 = builder.construct(3, 3, IntBuffer.wrap(createConsecutiveTile(3).toArray()))
+      val t2 = builder.construct(3, 3, IntBuffer.wrap(createOnesTile(3).toArray()))
+
+      it("has builder") {
+        assert(builder.empty.size == 0)
+
+        val tile = builder.construct(3, 3, IntBuffer.wrap(createConsecutiveTile(3).toArray()))
+        assert(tile.cols == 3)
+        assert(tile.rows == 3)
+        assert(tile.cells.array().length == 9)
+      }
+
+      it("has additive identity") {
+        assert(t1 + zero == t1)
+        assert(t2 + zero == t2)
+        assert(zero + t1 == t1)
+        assert(zero + t2 == t2)
+      }
+
+      it("has equality") {
+        val teq = implicitly[Order[IntBufferTile]]
+        assert(teq.eqv(t1, t1))
+        assert(teq.eqv(t2, t2))
+        assert(t1 == t1)
+        assert(t2 == t2)
+      }
+
+      it("has order") {
+        assert(t1 > t2)
+        assert(t1 >= t2)
+        assert(t2 < t1)
+        assert(t2 <= t1)
+        assert(t1 != t2)
+        assert(t2 != t1)
+      }
+
+      it("supports addition, subtraction, negation") {
+        val r0 = -t1
+        val r1 = t1 + t2
+        val r2 = t1 - t2
+
+        assert(r0 == -t1)
+        assert(r1 == t1 + t2)
+        assert(r2 == t1 - t2)
+        assert(r0 + r1 + r2 == t1)
       }
 
       it("supports scalar multiplication") {

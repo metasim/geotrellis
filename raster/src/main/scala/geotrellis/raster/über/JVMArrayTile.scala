@@ -17,24 +17,21 @@
 
 package geotrellis.raster.über
 
-import java.util
-
-import geotrellis.raster.Tile
 import geotrellis.raster.über.JVMArrayTile.JVMTileBuilder
 import spire.algebra._
 import spire.implicits._
 import spire.math._
-import spire.std._
 
 import scala.reflect._
-import scala.reflect.runtime.universe._
 
 /**
  *
  * @author sfitch 
  * @since 1/6/18
  */
-abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] extends MappableTile[C, T] with ColumnMajorTile[C] with Product {
+abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag]
+  extends LinearlyAddressedTile[C, T]
+    with MappableTile[C, T] with ColumnMajorTile with Product {
 
   type StorageType = Array[C]
 
@@ -50,7 +47,7 @@ abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] exte
     builder.construct(cols, rows, buf)
   }
 
-  def reduceOption[C1 >: C](op: (C1, C1) ⇒ C1): Option[C1] = {
+  def reduceOption(op: (C, C) ⇒ C): Option[C] = {
     if(size == 0) None
     else cells.reduceOption(op)
   }
@@ -60,7 +57,7 @@ abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] exte
     val right = other
     val cols = min(left.cols, right.cols)
     val rows = min(left.rows, right.rows)
-    val buf = Array.ofDim[C](cols * rows)
+    val buf = Array.ofDim[C](size)
 
     val lcells = left.cells
     val rcells = right.cells
@@ -82,7 +79,7 @@ abstract class JVMArrayTile[C: ClassTag, T <: JVMArrayTile[C, T]: ClassTag] exte
   })
 
   override def toString =
-    s"$productPrefix($cols, $rows, ${cells.take(20).mkString(", ")}${if(cells.length > 20) "...)" else ")"}"
+    s"$productPrefix($cols, $rows, ${cells.take(20).mkString(", ")}${if(size > 20) "...)" else ")"}"
 }
 
 object JVMArrayTile {
@@ -94,9 +91,13 @@ object JVMArrayTile {
     def construct(cols: Int, rows: Int, cells: Array[C]) = ctor.newInstance(Int.box(cols), Int.box(rows), cells)
   }
 
+  case class IntJVMArrayTile(cols: Int, rows: Int, cells: Array[Int]) extends JVMArrayTile[Int, IntJVMArrayTile]
+
+  case class UByteJVMArrayTile(cols: Int, rows: Int, cells: Array[UByte]) extends JVMArrayTile[UByte, UByteJVMArrayTile]
+
   trait Implicits {
 
-    implicit val intTileHasBuilder = new JVMTileBuilder[Int, IntJVMArrayTile]
+    implicit val intTileHasBuilder: TileBuilder[IntJVMArrayTile] = new JVMTileBuilder[Int, IntJVMArrayTile]
     implicit val intTileAlgebra1 = new ÜberAlgebra.SignedMappableTileAlgebra[Int, IntJVMArrayTile]
     implicit val intTileAlgebra2 = new ÜberAlgebra.LinearlyAddressedTileAlgebra[Int, IntJVMArrayTile]
 
@@ -114,10 +115,6 @@ object JVMArrayTile {
     implicit val ubyteTileAlgebra2 = new ÜberAlgebra.LinearlyAddressedTileAlgebra[UByte, UByteJVMArrayTile]
 
   }
-
-  case class IntJVMArrayTile(cols: Int, rows: Int, cells: Array[Int]) extends JVMArrayTile[Int, IntJVMArrayTile]
-
-  case class UByteJVMArrayTile(cols: Int, rows: Int, cells: Array[UByte]) extends JVMArrayTile[UByte, UByteJVMArrayTile]
 }
 
 

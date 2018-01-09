@@ -22,6 +22,6 @@ package geotrellis.raster
  * @author sfitch 
  * @since 1/7/18
  */
-package object über extends JVMArrayTile.Implicits {
+package object über extends JVMArrayTile.Implicits with NIOBufferTile.Implicits {
 
 }
