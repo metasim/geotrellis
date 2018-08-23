@@ -19,8 +19,6 @@ package geotrellis.raster.io.geotiff.reader
 import geotrellis.raster._
 import geotrellis.raster.io.geotiff._
 import geotrellis.raster.testkit._
-
-import spire.syntax.cfor._
 import org.scalatest._
 
 class JpegGeoTiffReaderSpec extends FunSpec
@@ -29,21 +27,47 @@ class JpegGeoTiffReaderSpec extends FunSpec
 
 
   describe("Reading a geotiff with JPEG compression") {
-    it("should read jpeg compressed GeoTiff") {
-      // TO USE: Download
-      //  https://oin-hotosm.s3.amazonaws.com/5b437bcc2b6a08001185f94c/0/5b437bcc2b6a08001185f94d.tif
-      // and call it "jpeg-test.tif" in the  raster/data/geotiff-test-files folder
-      // run gdal_translate -co compression=deflate jpeg-test.tif jpeg-test-deflate.tif to create our expected.
-
+    // TO USE: Download
+    //  https://oin-hotosm.s3.amazonaws.com/5b437bcc2b6a08001185f94c/0/5b437bcc2b6a08001185f94d.tif
+    // and call it "jpeg-test.tif" in the  raster/data/geotiff-test-files folder
+    val (baseJpg, extent, crs) = {
       val gt = GeoTiffReader.readMultiband(geoTiffPath(s"jpeg-test.tif"))
-      val actual = gt.tile.toArrayTile
-      val gt2 = GeoTiffReader.readMultiband(geoTiffPath(s"jpeg-test-deflate.tif"))
-      val expected = gt2.tile.toArrayTile
+      (gt.tile.toArrayTile(), gt.raster.extent, gt.crs)
+    }
 
-      GeoTiff(Raster(actual, gt.raster.extent), gt.crs).copy(
+    // run gdal_translate -co compression=deflate jpeg-test.tif jpeg-test-deflate.tif to create our expected.
+    lazy val deflate = {
+      val gt = GeoTiffReader.readMultiband(geoTiffPath(s"jpeg-test-deflate.tif"))
+      gt.tile.toArrayTile()
+    }
+
+    lazy val rgbJpg = {
+      // run gdal_translate jpeg-test.tif -co PHOTOMETRIC=RGB -co COMPRESS=JPEG jpeg-test-rgb.tif to create expected.
+      val gt = GeoTiffReader.readMultiband(geoTiffPath(s"jpeg-test-rgb.tif"))
+      gt.tile.toArrayTile()
+    }
+
+    it("should read jpeg compressed GeoTiff encoded YCbCr") {
+      GeoTiff(Raster(baseJpg, extent), crs).copy(
         options=GeoTiffOptions.DEFAULT//.copy(colorSpace=6)
-      ).write("jpeg-test-written-t1.tif")
-      assertEqual(actual, expected)
+      ).write("jpeg-test-written-base.tif")
+
+      assertEqual(baseJpg, deflate)
+    }
+
+    it("should read jpeg compressed GeoTiff encoded RGB") {
+//      GeoTiff(Raster(rgbJpg, extent), crs).copy(
+//        options=GeoTiffOptions.DEFAULT//.copy(colorSpace=6)
+//      ).write("jpeg-test-written-rgb.tif")
+
+//      val diff = Abs(Subtract(rgbJpg.band(0), deflate.band(0)))
+//      diff.statisticsDouble.foreach(println)
+//
+//      GeoTiff(Raster(diff, extent), crs).copy(
+//        options=GeoTiffOptions.DEFAULT//.copy(colorSpace=6)
+//      ).write("jpeg-test-band-0-delta2.tif")
+
+      assertEqual(rgbJpg, deflate)
     }
   }
 }
